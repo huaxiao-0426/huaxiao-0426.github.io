@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>虚拟手机系统 V2.0</title>
+    <style>
+        :root { --ios-blue: #007aff; --wechat-green: #95ec69; --system-bg: #f2f2f7; }
+        body, html { margin: 0; padding: 0; height: 100%; background: #000; font-family: -apple-system, sans-serif; overflow: hidden; }
+
+        /* 1. 模拟手机状态栏 */
+        .status-bar { 
+            position: fixed; top: 0; width: 100%; height: 44px; 
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; box-sizing: border-box; color: #000; z-index: 1000; font-size: 14px; font-weight: 600;
+        }
+
+        /* 2. 伪装桌面 */
+        #home-screen { 
+            position: absolute; inset: 0; background: url('https://picsum.photos/1000/2000') center/cover;
+            display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(6, 1fr);
+            padding: 60px 20px; gap: 20px; z-index: 10; transition: 0.5s;
+        }
+        .app-icon { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
+        .app-icon div { width: 60px; height: 60px; border-radius: 15px; background: white; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .app-icon span { color: white; font-size: 12px; text-shadow: 0 1px 2px #000; }
+
+        /* 3. 应用窗口容器 */
+        .app-window { 
+            position: absolute; inset: 0; background: var(--system-bg); z-index: 20; 
+            display: none; flex-direction: column; padding-top: 44px; animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* 4. 微信样式聊天 */
+        .chat-header { padding: 15px; background: #ededed; text-align: center; border-bottom: 1px solid #ddd; position: relative; }
+        #chat-content { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { max-width: 75%; padding: 10px; border-radius: 6px; position: relative; font-size: 15px; }
+        .msg-user { align-self: flex-end; background: var(--wechat-green); border-right: 4px solid var(--wechat-green); }
+        .msg-ai { align-self: flex-start; background: #fff; border-left: 4px solid #fff; }
+        .char-name { font-size: 11px; color: #888; margin-bottom: 4px; }
+
+        /* 5. 朋友圈样式 */
+        #moments-list { flex: 1; overflow-y: auto; background: #fff; }
+        .moment-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; gap: 10px; }
+        .avatar { width: 40px; height: 40px; background: #ccc; border-radius: 4px; }
+
+        /* 6. 设置面板 */
+        .set-item { background: white; padding: 12px; margin-bottom: 1px; display: flex; align-items: center; }
+        .set-item label { width: 100px; font-size: 14px; color: #666; }
+        .set-item input, .set-item textarea { flex: 1; border: none; outline: none; font-size: 14px; }
+
+        .nav-btn { position: absolute; left: 15px; color: var(--ios-blue); cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="status-bar" id="status-bar">
+        <div id="status-time">09:41</div>
+        <div style="display: flex; gap: 5px;">📶 🪫 100%</div>
+    </div>
+
+    <div id="home-screen">
+        <div class="app-icon" onclick="openApp('wechat')"><div>💬</div><span>微信</span></div>
+        <div class="app-icon" onclick="openApp('moments')"><div>🎡</div><span>朋友圈</span></div>
+        <div class="app-icon" onclick="openApp('settings')"><div>⚙️</div><span>设置</span></div>
+    </div>
+
+    <div id="win-wechat" class="app-window">
+        <div class="chat-header"><span class="nav-btn" onclick="closeApp('win-wechat')">取消</span> <b id="target-name">AI 讨论组</b></div>
+        <div id="chat-content"></div>
+        <div style="background: #f7f7f7; padding: 10px; display: flex; gap: 10px; border-top: 1px solid #ddd;">
+            <input type="text" id="chat-input" style="flex:1; padding: 8px; border-radius: 4px; border: 1px solid #ddd;" placeholder="发送消息...">
+            <button onclick="sendMessage()" style="padding: 8px 15px; background: #07c160; color: white; border: none; border-radius: 4px;">发送</button>
+        </div>
+    </div>
+
+    <div id="win-moments" class="app-window" style="background: #fff;">
+        <div class="chat-header"><span class="nav-btn" onclick="closeApp('win-moments')">返回</span> 朋友圈</div>
+        <div id="moments-list">
+            <div style="height: 200px; background: #333 url('https://picsum.photos/400/200') center; color: white; position: relative;">
+                <div style="position: absolute; right: 20px; bottom: -20px; display: flex; align-items: center; gap: 10px;">
+                    <b>我的空间</b> <div class="avatar" style="width: 60px; height: 60px;"></div>
+                </div>
+            </div>
+            <div id="moments-container" style="margin-top: 30px;"></div>
+        </div>
+    </div>
+
+    <div id="win-settings" class="app-window">
+        <div class="chat-header"><span class="nav-btn" onclick="closeApp('win-settings')">完成</span> 系统设置</div>
+        <div style="overflow-y: auto;">
+            <div style="padding: 15px; color: #888; font-size: 13px;">API 核心</div>
+            <div class="set-item"><label>API Key</label><input type="password" id="cfg-key"></div>
+            <div class="set-item"><label>接口地址</label><input type="text" id="cfg-url" placeholder="https://..."></div>
+            
+            <div style="padding: 15px; color: #888; font-size: 13px;">世界书 & 人设</div>
+            <div class="set-item" style="flex-direction: column; align-items: flex-start;">
+                <label>全局设定 (世界书)</label>
+                <textarea id="cfg-world" rows="3" style="width:100%; margin-top:10px; background:#f9f9f9; padding:5px;"></textarea>
+            </div>
+            <div class="set-item"><label>角色名</label><input type="text" id="cfg-char-name" placeholder="如: 库洛米"></div>
+            <div class="set-item" style="flex-direction: column; align-items: flex-start;">
+                <label>性格预设</label>
+                <textarea id="cfg-char-prompt" rows="3" style="width:100%; margin-top:10px; background:#f9f9f9; padding:5px;"></textarea>
+            </div>
+            <div style="padding: 20px;"><button onclick="saveAll()" style="width:100%; padding:12px; background:var(--ios-blue); color:white; border:none; border-radius: 8px;">保存全局配置</button></div>
+        </div>
+    </div>
+
+<script>
+    let config = JSON.parse(localStorage.getItem('ai_os_config')) || {
+        key: '', url: '', world: '在这个世界里，AI是人类的好友。', charName: '小助手', charPrompt: '温柔体贴', moments: []
+    };
+
+    function openApp(id) { document.getElementById('win-' + id).style.display = 'flex'; }
+    function closeApp(id) { document.getElementById(id).style.display = 'none'; }
+
+    function saveAll() {
+        config.key = document.getElementById('cfg-key').value.trim();
+        config.url = document.getElementById('cfg-url').value.trim();
+        config.world = document.getElementById('cfg-world').value;
+        config.charName = document.getElementById('cfg-char-name').value;
+        config.charPrompt = document.getElementById('cfg-char-prompt').value;
+        localStorage.setItem('ai_os_config', JSON.stringify(config));
+        document.getElementById('target-name').innerText = config.charName;
+        alert('系统已更新');
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const flow = document.getElementById('chat-content');
+        if(!input.value || !config.key) return;
+
+        // 用户消息
+        flow.innerHTML += `<div class="msg msg-user">${input.value}</div>`;
+        const userText = input.value;
+        input.value = '';
+        
+        // AI 思考中
+        const aiBubble = document.createElement('div');
+        aiBubble.className = 'msg msg-ai';
+        aiBubble.innerHTML = `<div class="char-name">${config.charName}</div><div>...</div>`;
+        flow.appendChild(aiBubble);
+        flow.scrollTop = flow.scrollHeight;
+
+        try {
+            const res = await fetch(`${config.url}/v1beta/models/gemini-1.5-flash:generateContent?key=${config.key}`, {
+                method: 'POST',
+                body: JSON.stringify({ contents: [{ parts: [{ text: `[世界书: ${config.world}] [你的人设: ${config.charName}, ${config.charPrompt}] 用户对你说: ${userText}` }] }] })
+            });
+            const data = await res.json();
+            const reply = data.candidates[0].content.parts[0].text;
+            aiBubble.innerHTML = `<div class="char-name">${config.charName}</div><div>${reply}</div>`;
+
+            // 🎲 触发朋友圈逻辑 (25%概率)
+            if(Math.random() < 0.25) {
+                createMoment(reply.substring(0, 30)); 
+            }
+        } catch(e) { aiBubble.innerText = "信号弱，请检查API配置"; }
+        flow.scrollTop = flow.scrollHeight;
+    }
+
+    function createMoment(text) {
+        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const m = { name: config.charName, content: text, time: time };
+        config.moments.unshift(m);
+        renderMoments();
+    }
+
+    function renderMoments() {
+        const container = document.getElementById('moments-container');
+        container.innerHTML = config.moments.map(m => `
+            <div class="moment-item">
+                <div class="avatar"></div>
+                <div style="flex:1">
+                    <div style="color:#576b95; font-weight:bold; margin-bottom:5px;">${m.name}</div>
+                    <div style="font-size:15px; margin-bottom:8px;">${m.content}</div>
+                    <div style="font-size:12px; color:#b1b1b1;">${m.time}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // 更新系统时间
+    setInterval(() => {
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+        document.getElementById('status-time').innerText = timeStr;
+    }, 1000);
+
+    // 初始化填入
+    document.getElementById('cfg-key').value = config.key;
+    document.getElementById('cfg-url').value = config.url;
+    document.getElementById('cfg-world').value = config.world;
+    document.getElementById('cfg-char-name').value = config.charName;
+    document.getElementById('cfg-char-prompt').value = config.charPrompt;
+    renderMoments();
+</script>
+</body>
+</html>

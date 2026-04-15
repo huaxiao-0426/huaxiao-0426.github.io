@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>我的私人AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: sans-serif; background: #fff5f7; padding: 20px; }
+        #chat-box { border: 2px solid #ffb6c1; height: 300px; overflow-y: auto; background: white; margin-bottom: 10px; padding: 10px; border-radius: 10px; }
+        input { width: 70%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px; background: #ffb6c1; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h3>✨ 我的私人聊天室</h3>
+    <div id="chat-box">这里是聊天记录...</div>
+    <input type="text" id="userInput" placeholder="输入你想说的话...">
+    <button onclick="sendMessage()">发送</button>
+
+    <script>
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const box = document.getElementById('chat-box');
+            if(input.value) {
+                box.innerHTML += `<p><b>我:</b> ${input.value}</p>`;
+                box.innerHTML += `<p style="color:gray"><i>(AI正在思考中...需配置API后响应)</i></p>`;
+                input.value = '';
+            }
+        }
+    </script>
+</body>
+</html>

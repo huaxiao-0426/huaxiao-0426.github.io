@@ -1,201 +1,669 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>虚拟手机系统 V2.0</title>
-    <style>
-        :root { --ios-blue: #007aff; --wechat-green: #95ec69; --system-bg: #f2f2f7; }
-        body, html { margin: 0; padding: 0; height: 100%; background: #000; font-family: -apple-system, sans-serif; overflow: hidden; }
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
 
-        /* 1. 模拟手机状态栏 */
-        .status-bar { 
-            position: fixed; top: 0; width: 100%; height: 44px; 
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 20px; box-sizing: border-box; color: #000; z-index: 1000; font-size: 14px; font-weight: 600;
-        }
 
-        /* 2. 伪装桌面 */
-        #home-screen { 
-            position: absolute; inset: 0; background: url('https://picsum.photos/1000/2000') center/cover;
-            display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(6, 1fr);
-            padding: 60px 20px; gap: 20px; z-index: 10; transition: 0.5s;
-        }
-        .app-icon { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
-        .app-icon div { width: 60px; height: 60px; border-radius: 15px; background: white; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .app-icon span { color: white; font-size: 12px; text-shadow: 0 1px 2px #000; }
 
-        /* 3. 应用窗口容器 */
-        .app-window { 
-            position: absolute; inset: 0; background: var(--system-bg); z-index: 20; 
-            display: none; flex-direction: column; padding-top: 44px; animation: slideUp 0.3s ease-out;
-        }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-        /* 4. 微信样式聊天 */
-        .chat-header { padding: 15px; background: #ededed; text-align: center; border-bottom: 1px solid #ddd; position: relative; }
-        #chat-content { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; }
-        .msg { max-width: 75%; padding: 10px; border-radius: 6px; position: relative; font-size: 15px; }
-        .msg-user { align-self: flex-end; background: var(--wechat-green); border-right: 4px solid var(--wechat-green); }
-        .msg-ai { align-self: flex-start; background: #fff; border-left: 4px solid #fff; }
-        .char-name { font-size: 11px; color: #888; margin-bottom: 4px; }
 
-        /* 5. 朋友圈样式 */
-        #moments-list { flex: 1; overflow-y: auto; background: #fff; }
-        .moment-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; gap: 10px; }
-        .avatar { width: 40px; height: 40px; background: #ccc; border-radius: 4px; }
 
-        /* 6. 设置面板 */
-        .set-item { background: white; padding: 12px; margin-bottom: 1px; display: flex; align-items: center; }
-        .set-item label { width: 100px; font-size: 14px; color: #666; }
-        .set-item input, .set-item textarea { flex: 1; border: none; outline: none; font-size: 14px; }
 
-        .nav-btn { position: absolute; left: 15px; color: var(--ios-blue); cursor: pointer; }
-    </style>
-</head>
-<body>
 
-    <div class="status-bar" id="status-bar">
-        <div id="status-time">09:41</div>
-        <div style="display: flex; gap: 5px;">📶 🪫 100%</div>
-    </div>
 
-    <div id="home-screen">
-        <div class="app-icon" onclick="openApp('wechat')"><div>💬</div><span>微信</span></div>
-        <div class="app-icon" onclick="openApp('moments')"><div>🎡</div><span>朋友圈</span></div>
-        <div class="app-icon" onclick="openApp('settings')"><div>⚙️</div><span>设置</span></div>
-    </div>
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
 
-    <div id="win-wechat" class="app-window">
-        <div class="chat-header"><span class="nav-btn" onclick="closeApp('win-wechat')">取消</span> <b id="target-name">AI 讨论组</b></div>
-        <div id="chat-content"></div>
-        <div style="background: #f7f7f7; padding: 10px; display: flex; gap: 10px; border-top: 1px solid #ddd;">
-            <input type="text" id="chat-input" style="flex:1; padding: 8px; border-radius: 4px; border: 1px solid #ddd;" placeholder="发送消息...">
-            <button onclick="sendMessage()" style="padding: 8px 15px; background: #07c160; color: white; border: none; border-radius: 4px;">发送</button>
-        </div>
-    </div>
 
-    <div id="win-moments" class="app-window" style="background: #fff;">
-        <div class="chat-header"><span class="nav-btn" onclick="closeApp('win-moments')">返回</span> 朋友圈</div>
-        <div id="moments-list">
-            <div style="height: 200px; background: #333 url('https://picsum.photos/400/200') center; color: white; position: relative;">
-                <div style="position: absolute; right: 20px; bottom: -20px; display: flex; align-items: center; gap: 10px;">
-                    <b>我的空间</b> <div class="avatar" style="width: 60px; height: 60px;"></div>
-                </div>
-            </div>
-            <div id="moments-container" style="margin-top: 30px;"></div>
-        </div>
-    </div>
 
-    <div id="win-settings" class="app-window">
-        <div class="chat-header"><span class="nav-btn" onclick="closeApp('win-settings')">完成</span> 系统设置</div>
-        <div style="overflow-y: auto;">
-            <div style="padding: 15px; color: #888; font-size: 13px;">API 核心</div>
-            <div class="set-item"><label>API Key</label><input type="password" id="cfg-key"></div>
-            <div class="set-item"><label>接口地址</label><input type="text" id="cfg-url" placeholder="https://..."></div>
-            
-            <div style="padding: 15px; color: #888; font-size: 13px;">世界书 & 人设</div>
-            <div class="set-item" style="flex-direction: column; align-items: flex-start;">
-                <label>全局设定 (世界书)</label>
-                <textarea id="cfg-world" rows="3" style="width:100%; margin-top:10px; background:#f9f9f9; padding:5px;"></textarea>
-            </div>
-            <div class="set-item"><label>角色名</label><input type="text" id="cfg-char-name" placeholder="如: 库洛米"></div>
-            <div class="set-item" style="flex-direction: column; align-items: flex-start;">
-                <label>性格预设</label>
-                <textarea id="cfg-char-prompt" rows="3" style="width:100%; margin-top:10px; background:#f9f9f9; padding:5px;"></textarea>
-            </div>
-            <div style="padding: 20px;"><button onclick="saveAll()" style="width:100%; padding:12px; background:var(--ios-blue); color:white; border:none; border-radius: 8px;">保存全局配置</button></div>
-        </div>
-    </div>
 
-<script>
-    let config = JSON.parse(localStorage.getItem('ai_os_config')) || {
-        key: '', url: '', world: '在这个世界里，AI是人类的好友。', charName: '小助手', charPrompt: '温柔体贴', moments: []
-    };
 
-    function openApp(id) { document.getElementById('win-' + id).style.display = 'flex'; }
-    function closeApp(id) { document.getElementById(id).style.display = 'none'; }
 
-    function saveAll() {
-        config.key = document.getElementById('cfg-key').value.trim();
-        config.url = document.getElementById('cfg-url').value.trim();
-        config.world = document.getElementById('cfg-world').value;
-        config.charName = document.getElementById('cfg-char-name').value;
-        config.charPrompt = document.getElementById('cfg-char-prompt').value;
-        localStorage.setItem('ai_os_config', JSON.stringify(config));
-        document.getElementById('target-name').innerText = config.charName;
-        alert('系统已更新');
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Eran">
+<meta property="og:url" content="http://yoursite.com/index.html">
+<meta property="og:site_name" content="Eran">
+<meta property="og:locale" content="en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Eran">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"remove","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
     }
-
-    async function sendMessage() {
-        const input = document.getElementById('chat-input');
-        const flow = document.getElementById('chat-content');
-        if(!input.value || !config.key) return;
-
-        // 用户消息
-        flow.innerHTML += `<div class="msg msg-user">${input.value}</div>`;
-        const userText = input.value;
-        input.value = '';
-        
-        // AI 思考中
-        const aiBubble = document.createElement('div');
-        aiBubble.className = 'msg msg-ai';
-        aiBubble.innerHTML = `<div class="char-name">${config.charName}</div><div>...</div>`;
-        flow.appendChild(aiBubble);
-        flow.scrollTop = flow.scrollHeight;
-
-        try {
-            const res = await fetch(`${config.url}/v1beta/models/gemini-1.5-flash:generateContent?key=${config.key}`, {
-                method: 'POST',
-                body: JSON.stringify({ contents: [{ parts: [{ text: `[世界书: ${config.world}] [你的人设: ${config.charName}, ${config.charPrompt}] 用户对你说: ${userText}` }] }] })
-            });
-            const data = await res.json();
-            const reply = data.candidates[0].content.parts[0].text;
-            aiBubble.innerHTML = `<div class="char-name">${config.charName}</div><div>${reply}</div>`;
-
-            // 🎲 触发朋友圈逻辑 (25%概率)
-            if(Math.random() < 0.25) {
-                createMoment(reply.substring(0, 30)); 
-            }
-        } catch(e) { aiBubble.innerText = "信号弱，请检查API配置"; }
-        flow.scrollTop = flow.scrollHeight;
-    }
-
-    function createMoment(text) {
-        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        const m = { name: config.charName, content: text, time: time };
-        config.moments.unshift(m);
-        renderMoments();
-    }
-
-    function renderMoments() {
-        const container = document.getElementById('moments-container');
-        container.innerHTML = config.moments.map(m => `
-            <div class="moment-item">
-                <div class="avatar"></div>
-                <div style="flex:1">
-                    <div style="color:#576b95; font-weight:bold; margin-bottom:5px;">${m.name}</div>
-                    <div style="font-size:15px; margin-bottom:8px;">${m.content}</div>
-                    <div style="font-size:12px; color:#b1b1b1;">${m.time}</div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    // 更新系统时间
-    setInterval(() => {
-        const now = new Date();
-        const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-        document.getElementById('status-time').innerText = timeStr;
-    }, 1000);
-
-    // 初始化填入
-    document.getElementById('cfg-key').value = config.key;
-    document.getElementById('cfg-url').value = config.url;
-    document.getElementById('cfg-world').value = config.world;
-    document.getElementById('cfg-char-name').value = config.charName;
-    document.getElementById('cfg-char-prompt').value = config.charPrompt;
-    renderMoments();
+  };
 </script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/"/>
+
+
+
+
+
+  <title>Eran</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?716a23a4be7050158f1489e12c772558";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left 
+   page-home 
+ ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Eran</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+  <section id="posts" class="posts-expand">
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/08/12/upload/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Eran">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Eran">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/08/12/upload/" itemprop="url">使用FileReader预览本地上传图片</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-08-12T01:20:14+08:00">
+                2017-08-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h3 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h3><blockquote>
+<p><strong>FileReader</strong>对象允许Web应用程序异步读取存储在用户计算机上的文件（或原始数据缓冲区）的内容，使用 File 或 Blob 对象指定要读取的文件或数据。  </p>
+<p>其中File对象可以是来自用户在一个input元素上选择文件后返回的FileList对象,也可以来自拖放操作生成的 DataTransfer对象,还可以是来自在一个HTMLCanvasElement上执行mozGetAsFile()方法后返回结果.</p>
+</blockquote>
+<p>老规矩,先看代码<br><figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!--顺便说句,如果accept指定为image/*,谷歌浏览器会非常非常非常的卡,具体原因知乎上有相关文章--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"file"</span> <span class="attr">multiple</span> <span class="attr">accept</span>=<span class="string">"image/gif, image/jpeg"</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> input = <span class="built_in">document</span>.querySelector(<span class="string">'input'</span>);</div><div class="line"></div><div class="line">input.onchange = <span class="function"><span class="keyword">function</span> (<span class="params">e</span>) </span>&#123;</div><div class="line">  <span class="built_in">console</span>.log(e.target.files);<span class="comment">// 本次选中的图片数组</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><img src="http://ouj8zhrzu.bkt.clouddn.com/files.png"><br>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/08/12/upload/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/08/12/loading/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Eran">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Eran">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/08/12/loading/" itemprop="url">使用原生js实现图片及音频预加载功能</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-08-12T00:26:44+08:00">
+                2017-08-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h3 id="图片加载"><a href="#图片加载" class="headerlink" title="图片加载"></a>图片加载</h3><p> 先来看下核心代码</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> img = <span class="keyword">new</span> Image();</div><div class="line">img.onload = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</div><div class="line">  <span class="built_in">console</span>.log(<span class="string">'图片加载完毕'</span>)</div><div class="line">&#125;;</div><div class="line">img.src = <span class="string">'./images/1.jpg'</span></div></pre></td></tr></table></figure>
+<p>非常简单,当图片加载完毕后会调用onload方法。<br>那么我们接下来批量图片加载思路就很简单了,无非是在onload里面判断是否所有图片都加载完毕。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/08/12/loading/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+  </section>
+
+  
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Eran</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+    <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
 </body>
 </html>
